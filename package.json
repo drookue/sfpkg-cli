@@ -1,0 +1,24 @@
+{
+  "name": "tic-sfpkg-cli",
+  "version": "1.0.0",
+  "description": "Create deployment directory with only metadata components specified in package.xml",
+  "main": "bin/index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Tim Paulaskas",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git@bitbucket.org:irvinecompany/salesforce-pkg-cli.git"
+  },
+  "bin": {
+    "tic-sfpkg": "./bin/index.js"
+  },
+  "dependencies": {
+    "boxen": "^4.2.0",
+    "chalk": "^4.0.0",
+    "xml2js": "^0.4.23",
+    "yargs": "^15.3.1"
+  }
+}
