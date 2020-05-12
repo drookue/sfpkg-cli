@@ -57,26 +57,26 @@ const packageArray = {
     CustomTab: "tabs",
     Dashboard: "dashboards",
     DelegateGroup: "delegateGroups",
-    //Document: "documents",
-    //DuplicateRule: "duplicateRules",
-    //EmailServicesFunction: "emailservices",
-    //EmailTemplate: "email",
-    //FieldSet: "objects",
+    Document: "documents",
+    DuplicateRule: "duplicateRules",
+    EmailServicesFunction: "emailservices",
+    EmailTemplate: "email",
+    FieldSet: "objects",
     FlexiPage: "flexipages",
-    //Flow: "flows",
-    //FlowDefinition: "flowDefinitions",
-    //GlobalValueSet: "globalValueSets",
-    //Group: "groups",
-    //HomePageComponent: "homePageComponents",
-    //HomePageLayout: "homePageLayouts",
-    //KeywordList: "moderation",
+    Flow: "flows",
+    FlowDefinition: "flowDefinitions",
+    GlobalValueSet: "globalValueSets",
+    Group: "groups",
+    HomePageComponent: "homePageComponents",
+    HomePageLayout: "homePageLayouts",
+    KeywordList: "moderation",
     Layout: "layouts",
-    //LeadConvertSettings: "LeadConvertSettings",
-    //Letterhead: "letterhead",
-    //LightningExperienceTheme: "lightningExperienceThemes",
+    LeadConvertSettings: "LeadConvertSettings",
+    Letterhead: "letterhead",
+    LightningExperienceTheme: "lightningExperienceThemes",
     ListView: "objects",
-    //ManagedTopics: "managedTopics",
-    //MatchingRule: "matchingRules",
+    ManagedTopics: "managedTopics",
+    MatchingRule: "matchingRules",
     //MatchingRules: "matchingRules",
     //ModerationRule: "moderation",
     //NamedCredential: "namedCredentials",
@@ -123,6 +123,9 @@ const options = yargs
     .option("f", { alias: "pkgxml", describe: "package.xml", type: "string", demandOption: true })
     .option("u", { alias: "slackurl", describe: "Slack URL", type: "string", demandOption: false})
     .argv;
+
+
+const Directories = [];
 
 /**
 * Handles the actual sending request.
@@ -419,8 +422,30 @@ function processGenericWithFile(extension, path, members) {
     }
 }
 
+function copyDirectory(srcpath, destpath) {
+    return new Promise((resolve, reject) => {
+        const ncp = require('ncp').ncp;
+
+        if (!Directories.includes(srcpath)) {
+            Directories.push(srcpath);
+            ncp.limit = 16;
+
+            ncp(srcpath, destpath, function (err) {
+                if (err) {
+                    throw new Error("Failed to copy " + srcpath, err);
+                    //exitApp("Failed to copy " + srcpath);
+                }
+            });
+        }
+  }).then((state) => {
+        //console.log('done', state)
+    })
+    .catch((error) => {
+        throw new Error("Failed to copy " + srcpath, err);
+    });
+}
+
 function processFolder(path, members) {
-    const ncp = require('ncp').ncp;
     let dir;
     dir = `${options.deploy}` + '/force-app/main/default/' + path;
     createDir(dir);
@@ -430,31 +455,36 @@ function processFolder(path, members) {
         let srcpath = `${options.src}` + '/main/default/' + path + '/' + dir;
         let destpath = `${options.deploy}` + '/force-app/main/default/' + path + '/' + dir;
 
-        if (path == 'dashboards'){
+        if (path == 'dashboards' || path == 'documents' || path == 'email'){
             let nameArr = member.split('/');
             dir = nameArr[0];
             file = nameArr[1];
 
-            if (file === undefined) {
-                processDifferentMeta('dashboardFolder', path, member.split());
-                ncp.limit = 16;
+            if (file === undefined && path != 'email') {
+                switch (path){
+                    case 'dashboards':
+                        processDifferentMeta('dashboardFolder', path, member.split());
+                        break;
+                    case 'documents':
+                        processDifferentMeta('documentFolder', path, member.split());
+                        break;
+                }
+                if (fs.existsSync(srcpath)) {
+                    copyDirectory(srcpath, destpath);
+                }
+            } else if (path == 'email') {
+                if (file === undefined) {
+                    processDifferentMeta('emailFolder', path, member.split());
+                }
+                srcpath = `${options.src}` + '/main/default/' + path + '/' + dir;
+                destpath = `${options.deploy}` + '/force-app/main/default/' + path + '/' + dir;
 
-                ncp(srcpath, destpath, function (err) {
-                    if (err) {
-                        throw new Error("Failed to copy " + srcpath, err);
-                        exitApp("Failed to copy " + srcpath);
-                    }
-                });
+                if (!fs.existsSync(destpath) && fs.existsSync(srcpath)) {
+                    copyDirectory(srcpath, destpath);
+                }
             }
         } else {
-            ncp.limit = 16;
-
-            ncp(srcpath, destpath, function (err) {
-                if (err) {
-                    throw new Error("Failed to copy " + srcpath, err);
-                    exitApp("Failed to copy " + srcpath);
-                }
-            });
+            copyDirectory(srcpath, destpath);
         }
 
     }
@@ -498,7 +528,7 @@ function processDifferentMeta(metaext, path, members, split = true) {
 
     for (let member of members) {
         let nameArr = member.split('.');
-        let file = (split === true) ? nameArr[0] : member;
+        let file = (split === true && metaext != 'keywords') ? nameArr[0] : member;
 
         let srcpath = `${options.src}` + '/main/default/' + path + '/' + file + meta;
         let destpath = `${options.deploy}` + '/force-app/main/default/' + path + '/' + file + meta;
@@ -554,15 +584,18 @@ function processNodes(obj) {
                 case "ApexTrigger":
                     processGenericWithFile('trigger', packageArray[name], val.members);
                     break;
-                case "ApprovalProcess":
-                    processGeneric(packageArray[name], val.members, 2);
-                    break;
                 /** The following have a single file per object even though there are many entries in the package.xml file */
                 case "AssignmentRules":
                 case "AssignmentRule":
                 case "AutoResponseRule":
                 case "AutoResponseRules":
                     processGenericByFolder(packageArray[name], val.members, 0);
+                    break;
+                case "MatchingRule":
+                    processGenericByFolder(packageArray[name], val.members, 1);
+                    break;
+                case "ApprovalProcess":
+                    processGeneric(packageArray[name], val.members, 2);
                     break;
                 /** The following is a custom process for CustomLabels which is a single file in the labels folder */
                 case "CustomLabel":
@@ -581,6 +614,18 @@ function processNodes(obj) {
                 case "CustomPageWebLink":
                     processDifferentMeta("custompageweblink", packageArray[name], val.members);
                     break;
+                case "EmailServicesFunction":
+                    processDifferentMeta("xml", packageArray[name], val.members);
+                    break;
+                case "KeywordList":
+                    processDifferentMeta("keywords", packageArray[name], val.members);
+                    break;
+                case "Letterhead":
+                    processDifferentMeta("letter", packageArray[name], val.members);
+                    break;
+                case "ManagedTopics":
+                    processDifferentMeta("managedTopics", packageArray[name], val.members);
+                    break;
                 /** The following is a custom function that handles the different meta filename than the default with two files */
                 case "Certificate":
                     processDifferentMetaWithFile("crt", packageArray[name], val.members);
@@ -591,6 +636,8 @@ function processNodes(obj) {
                 /** The following are Aura Definitions and require the entire directory to be copied */
                 case "AuraDefinitionBundle":
                 case "Dashboard":
+                case "Document":
+                case "EmailTemplate":
                     processFolder(packageArray[name], val.members);
                     break;
                 /** The follow are all located in the objects folder structure */
@@ -605,6 +652,9 @@ function processNodes(obj) {
                     break;
                 case "CustomObjectTranslation":
                     processObjectItem('objectTranslations', packageArray[name], val.members);
+                    break;
+                case "FieldSet":
+                    processObjectItem('fieldSets', packageArray[name], val.members);
                     break;
                 case "ListView":
                     processObjectItem('listViews', packageArray[name], val.members);
@@ -645,8 +695,17 @@ function processNodes(obj) {
                 case "CustomSite":
                 case "CustomTab":
                 case "DelegateGroup":
+                case "DuplicateRule":
                 case "FlexiPage":
+                case "Flow":
+                case "FlowDefinition":
+                case "GlobalValueSet":
+                case "Group":
+                case "HomePageComponent":
+                case "HomePageLayout":
                 case "Layout":
+                case "LeadConvertSettings":
+                case "LightningExperienceTheme":
                 case "PermissionSet":
                 case "Profile":
                 case "QuickAction":
