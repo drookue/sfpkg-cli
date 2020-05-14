@@ -25,6 +25,7 @@ const packageArray = {
     ApexClass: "classes",
     ApexComponent: "components",
     ApexPage: "pages",
+    ApexTestSuite: "testSuites",
     ApexTrigger: "triggers",
     AppMenu: "appMenus",
     ApprovalProcess: "approvalProcesses",
@@ -37,6 +38,7 @@ const packageArray = {
     AutoResponseRules: "autoResponseRules",
     BrandingSet: "brandingSets",
     BusinessProcess: "objects",
+    CampaignInfluenceModel: "campaignInfluenceModels",
     Certificate: "certs",
     CleanDataService: "cleanDataServices",
     Community: "communities",
@@ -73,36 +75,41 @@ const packageArray = {
     Layout: "layouts",
     LeadConvertSettings: "LeadConvertSettings",
     Letterhead: "letterhead",
+    LightningComponentBundle: "lwc",
     LightningExperienceTheme: "lightningExperienceThemes",
     ListView: "objects",
     ManagedTopics: "managedTopics",
     MatchingRule: "matchingRules",
-    //MatchingRules: "matchingRules",
-    //ModerationRule: "moderation",
-    //NamedCredential: "namedCredentials",
-    //Network: "networks",
-    //NetworkBranding: "networkBranding",
-    //PathAssistant: "pathAssistants",
+    MatchingRules: "matchingRules",
+    ModerationRule: "moderation",
+    NamedCredential: "namedCredentials",
+    NavigationMenu: "navigationMenus",
+    Network: "networks",
+    NetworkBranding: "networkBranding",
+    PathAssistant: "pathAssistants",
     PermissionSet: "permissionsets",
     Profile: "profiles",
-    //ProfilePasswordPolicy: "profilePasswordPolicies",
-    //ProfileSessionSetting: "profileSessionSettings",
-    //Queue: "queues",
+    ProfilePasswordPolicy: "profilePasswordPolicies",
+    ProfileSessionSetting: "profileSessionSettings",
+    Queue: "queues",
     QuickAction: "quickActions",
-    //RecordType: "objects",
-    //RemoteSiteSetting: "remoteSiteSettings",
-    //Report: "reports",
-    //ReportType: "reportTypes",
-    //Role: "roles",
-    //SamlSsoConfig: "samlssoconfigs",
-    //Settings: "settings",
-    //SharingCriteriaRule: "sharingRules",
+    RecordType: "objects",
+    RemoteSiteSetting: "remoteSiteSettings",
+    Report: "reports",
+    ReportType: "reportTypes",
+    Role: "roles",
+    SamlSsoConfig: "samlssoconfigs",
+    Settings: "settings",
+    SharingCriteriaRule: "sharingRules",
     //SharingGuestRule: "sharingRules",
-    //SharingOwnerRule: "sharingRules",
-    //SharingRules: "sharingRules",
+    SharingOwnerRule: "sharingRules",
+    SharingRules: "sharingRules",
     //SharingTerritoryRule: "sharingRules",
+    SiteDotCom: "siteDotComSites",
     StandardValueSet: "standardValueSets",
+    StaticResource: "staticresources",
     TopicsForObjects: "topicsForObjects",
+    Translations: "translations",
     UserCriteria: "userCriteria",
     ValidationRule: "objects",
     WebLink: "objects",
@@ -455,7 +462,7 @@ function processFolder(path, members) {
         let srcpath = `${options.src}` + '/main/default/' + path + '/' + dir;
         let destpath = `${options.deploy}` + '/force-app/main/default/' + path + '/' + dir;
 
-        if (path == 'dashboards' || path == 'documents' || path == 'email'){
+        if (path == 'dashboards' || path == 'documents' || path == 'email' || path == 'reports'){
             let nameArr = member.split('/');
             dir = nameArr[0];
             file = nameArr[1];
@@ -467,6 +474,9 @@ function processFolder(path, members) {
                         break;
                     case 'documents':
                         processDifferentMeta('documentFolder', path, member.split());
+                        break;
+                    case 'reports':
+                        processDifferentMeta('reportFolder', path, member.split());
                         break;
                 }
                 if (fs.existsSync(srcpath)) {
@@ -563,6 +573,37 @@ function processDifferentMetaWithFile(metaext, path, members, split = true) {
     }
 }
 
+function processStaticResource(metaext, path, members) {
+    const meta = '.' + metaext + '-meta.xml';
+    const fileext = '.' + metaext;
+    let dir;
+    let srcpath;
+    let destpath;
+    let files = [];
+
+    dir = `${options.deploy}` + '/force-app/main/default/' + path;
+    createDir(dir);
+
+    srcpath = `${options.src}` + '/main/default/' + path;
+    fs.readdirSync(srcpath).forEach(file => {
+        if (!file.endsWith(meta)){
+            let filebits = file.split('.');
+            let thisfile = new Array();
+            if (filebits.length > 1) {
+                thisfile[1] = filebits[filebits.length - 1];
+                filebits.length = filebits.length - 1;
+            }
+            thisfile[0] = filebits.join('');
+            files.push(thisfile);
+        }
+    });
+
+    for (let member of members) {
+        let nameArr = member.split('.');
+        //console.log(member);
+    }
+}
+
 function processNodes(obj) {
     let types = obj.Package.types;
     for (let val of types) {
@@ -571,6 +612,10 @@ function processNodes(obj) {
         if (typeof(packageArray[name]) !== 'undefined'){
             console.log(stringProcessing, name);
             switch (name) {
+                /** The following is to process static resources */
+                case "StaticResource":
+                    processStaticResource('resource', packageArray[name], val.members);
+                    break;
                 /** The following all have 2 files for each node in the package.xml file */
                 case "ApexClass":
                     processGenericWithFile('cls', packageArray[name], val.members);
@@ -584,11 +629,17 @@ function processNodes(obj) {
                 case "ApexTrigger":
                     processGenericWithFile('trigger', packageArray[name], val.members);
                     break;
+                case "NetworkBranding":
+                    processGenericWithFile('networkBranding', packageArray[name], val.members);
+                    break;
                 /** The following have a single file per object even though there are many entries in the package.xml file */
                 case "AssignmentRules":
                 case "AssignmentRule":
                 case "AutoResponseRule":
                 case "AutoResponseRules":
+                case "SharingCriteriaRule":
+                case "SharingOwnerRule":
+                case "SharingRules":
                     processGenericByFolder(packageArray[name], val.members, 0);
                     break;
                 case "MatchingRule":
@@ -626,6 +677,18 @@ function processNodes(obj) {
                 case "ManagedTopics":
                     processDifferentMeta("managedTopics", packageArray[name], val.members);
                     break;
+                case "ModerationRule":
+                    processDifferentMeta("rule", packageArray[name], val.members, false);
+                    break;
+                case "ProfilePasswordPolicy":
+                    processDifferentMeta("profilePasswordPolicy", packageArray[name], val.members);
+                    break;
+                case "RemoteSiteSetting":
+                    processDifferentMeta("remoteSite", packageArray[name], val.members);
+                    break;
+                case "Settings":
+                    processDifferentMeta("settings", packageArray[name], val.members);
+                    break;
                 /** The following is a custom function that handles the different meta filename than the default with two files */
                 case "Certificate":
                     processDifferentMetaWithFile("crt", packageArray[name], val.members);
@@ -633,14 +696,22 @@ function processNodes(obj) {
                 case "ContentAsset":
                     processDifferentMetaWithFile("asset", packageArray[name], val.members);
                     break;
-                /** The following are Aura Definitions and require the entire directory to be copied */
+                case "SitDotCom":
+                    processDifferentMetaWithFile("site", packageArray[name], val.members);
+                    break;
+                /** The following are categories require the entire directory to be copied */
                 case "AuraDefinitionBundle":
                 case "Dashboard":
                 case "Document":
                 case "EmailTemplate":
+                case "LightningComponentBundle":
+                case "Report":
                     processFolder(packageArray[name], val.members);
                     break;
                 /** The follow are all located in the objects folder structure */
+                case "BusinessProcess":
+                    processObjectItem('businessProcesses', packageArray[name], val.members, 2);
+                    break;
                 case "CompactLayout":
                     processObjectItem('compactLayouts', packageArray[name], val.members);
                     break;
@@ -659,8 +730,8 @@ function processNodes(obj) {
                 case "ListView":
                     processObjectItem('listViews', packageArray[name], val.members);
                     break;
-                case "BusinessProcess":
-                    processObjectItem('businessProcesses', packageArray[name], val.members, 2);
+                case "RecordType":
+                    processObjectItem('recordTypes', packageArray[name], val.members);
                     break;
                 case "ValidationRule":
                     processObjectItem('validationRules', packageArray[name], val.members);
@@ -686,9 +757,11 @@ function processNodes(obj) {
                     processWorkflow(packageArray[name], val.members);
                     break;
                 /** The following are the default singular meta file loacted in plural directory names */
+                case "ApexTestSuite":
                 case "AppMenu":
                 case "AuthProvider":
                 case "BrandingSet":
+                case "CampaignInfluenceModel":
                 case "CleanDataService":
                 case "ConnectedApp":
                 case "CspTrustedSite":
@@ -706,11 +779,22 @@ function processNodes(obj) {
                 case "Layout":
                 case "LeadConvertSettings":
                 case "LightningExperienceTheme":
+                case "MatchingRules":
+                case "NamedCredential":
+                case "NavigationMenu":
+                case "Network":
+                case "PathAssistant":
                 case "PermissionSet":
                 case "Profile":
+                case "ProfileSessionSetting":
+                case "Queue":
                 case "QuickAction":
+                case "ReportType":
+                case "Role":
+                case "SamlSsoConfig":
                 case "StandardValueSet":
                 case "TopicsForObjects":
+                case "Translations":
                 case "UserCriteria":
                     processGeneric(packageArray[name], val.members);
                     break;
