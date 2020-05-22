@@ -1,5 +1,5 @@
 {
-  "name": "tic-sfpkg-cli",
+  "name": "sfpkg-cli",
   "version": "1.0.0",
   "description": "Create deployment directory with only metadata components specified in package.xml",
   "main": "bin/index.js",
@@ -10,10 +10,10 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "git@bitbucket.org:irvinecompany/salesforce-pkg-cli.git"
+    "url": "https://github.com/drookue/sfpkg-cli"
   },
   "bin": {
-    "tic-sfpkg": "./bin/index.js"
+    "sfpkg": "./bin/index.js"
   },
   "dependencies": {
     "boxen": "^4.2.0",
