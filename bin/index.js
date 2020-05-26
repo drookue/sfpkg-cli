@@ -579,7 +579,7 @@ function processStaticResource(metaext, path, members) {
     let dir;
     let srcpath;
     let destpath;
-    let files = [];
+    let files = new Array();
 
     dir = `${options.deploy}` + '/force-app/main/default/' + path;
     createDir(dir);
@@ -590,17 +590,27 @@ function processStaticResource(metaext, path, members) {
             let filebits = file.split('.');
             let thisfile = new Array();
             if (filebits.length > 1) {
-                thisfile[1] = filebits[filebits.length - 1];
+                thisfile["ext"] = filebits[filebits.length - 1];
                 filebits.length = filebits.length - 1;
             }
-            thisfile[0] = filebits.join('');
+            thisfile["name"] = filebits.join('');
             files.push(thisfile);
         }
     });
 
     for (let member of members) {
-        let nameArr = member.split('.');
-        //console.log(member);
+        let file = files.filter(f => f.name == member)[0];
+        if (file.ext === undefined) {
+            srcpath = `${options.src}` + '/main/default/' + path + '/' + file.name;
+            destpath = `${options.deploy}` + '/force-app/main/default/' + path + '/' + file.name;
+            copyFile(srcpath + meta, destpath + meta);
+            copyDirectory(srcpath, destpath);
+        } else {
+            srcpath = `${options.src}` + '/main/default/' + path + '/' + file.name;
+            destpath = `${options.deploy}` + '/force-app/main/default/' + path + '/' + file.name;
+            copyFile(srcpath + meta, destpath + meta);
+            copyFile(srcpath + '.' + file.ext, destpath + '.' + file.ext);
+        }
     }
 }
 
