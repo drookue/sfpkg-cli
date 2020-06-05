@@ -4,7 +4,13 @@
   "description": "Create deployment directory with only metadata components specified in package.xml",
   "main": "bin/index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "node bin/index.js",
+    "dev": "env-cmd -f config/dev.env nodemon --trace-warnings bin/index.js -s test -d test -p test",
+    "debug": "env-cmd -f config/dev.env nodemon --inspect-brk bin/index.js",
+    "test": "env-cmd -f ./config/test.env jest --watch --runInBand --detectOpenHandles"
+  },
+  "jest": {
+    "testEnvironment": "node"
   },
   "author": "Tim Paulaskas",
   "license": "MIT",
@@ -23,5 +29,10 @@
     "ncp": "^2.0.0",
     "xml2js": "^0.4.23",
     "yargs": "^15.3.1"
+  },
+  "devDependencies": {
+    "env-cmd": "^10.1.0",
+    "jest": "^26.0.1",
+    "nodemon": "^2.0.4"
   }
 }
