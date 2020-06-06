@@ -1,63 +1,25 @@
 #!/usr/bin/env node
 
 const chalk = require("chalk");
-const boxen = require("boxen");
-const yargs = require("yargs");
 const xml2js = require('xml2js');
 const fs = require('fs');
 const colors = require('colors');
 
 const notifySlack = require('../src/notifications/slack')
 const packageArray = require('../src/definitions/package-array')
+const options = require('../src/utils/yargs')
+const { boxen, boxenOptions } = require('../src/utils/box')
+const exitApp = require('../src/utils/exit-app')
 
 const stringProcessing = colors.green('     Processing metadata category:');
-const boxenOptions = {
-    padding: 1,
-    margin: 1,
-    borderStyle: "round",
-    borderColor: "green",
-    backgroundColor: "#555555"
-};
 
 const userAccountNotification = {
     'text': 'Salesforce metadata types detected that are not found in the mapping array. These will be skipped until the tic-sfpkg-cli is updated.', // text
     'attachments': []
 };
 
-const demandOption = process.env.YARG_DEMAND === 'true' || process.env.YARG_DEMAND === undefined
-
-const options = yargs
-    .usage('Usage: tic-sfpkg -s <force-app-folder> -d <vscode-project> -f <package.xml> -u <slack-webhook-url>')
-    .option('s', { alias: 'src', describe: 'Source directory', type: 'string', demandOption })
-    .option('d', { alias: 'deploy', describe: 'Deploy directory', type: 'string', demandOption: false })
-    .option('f', { alias: 'pkgxml', describe: 'package.xml', type: 'string', demandOption: false })
-    .option('u', { alias: 'slackurl', describe: 'Slack URL', type: 'string', demandOption: false})
-    .argv;
-
-
-if (process.env.YARG_DEMAND) {
-    options.slackurl = process.env.SLACK_WEBHOOK_URL
-    options.src = process.env.SRC_PATH
-    options.deploy = process.env.DEST_PATH
-    options.pkgxml = process.env.XML_PATH
-}
-
 const Directories = [];
 
-
-function exitApp(message) {
-    const boxenOptions = {
-        padding: 1,
-        margin: 1,
-        borderStyle: "round",
-        borderColor: "red",
-    };
-
-    let msgBox = boxen(message, boxenOptions);
-
-    console.log(msgBox);
-    process.exit(1);
-}
 
 function validateArguments() {
     try {
