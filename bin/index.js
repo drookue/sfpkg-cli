@@ -10,7 +10,7 @@ const {options, validateArguments} = require('../src/utils/yargs')
 const { boxen, boxenOptions } = require('../src/utils/box')
 const exitApp = require('../src/utils/exit-app')
 const { copyFile } = require('../src/utils/file')
-const { createDir, copyDirectory } = require('../src/utils/directory')
+const { createDir, copyDirectory, resetDeployDir } = require('../src/utils/directory')
 const checkNodes = require('../src/utils/nodes')
 
 const stringProcessing = colors.green('     Processing metadata category:');
@@ -19,42 +19,6 @@ const displayHeader = () => {
     let greeting = chalk.white.bold("Salesforce Package Deployment");
     let msgBox = boxen(greeting, boxenOptions);
     console.log(msgBox);
-}
-
-const resetDeployDir = () => {
-    let deleteFolderRecursive = (path) => {
-        try {
-            if (fs.existsSync(path)) {
-                fs.readdirSync(path).forEach((file, index) => {
-                    let curPath = path + "/" + file;
-                    if (fs.lstatSync(curPath).isDirectory()) { // recurse
-                        deleteFolderRecursive(curPath);
-                    } else { // delete file
-                        fs.unlinkSync(curPath);
-                    }
-                });
-                fs.rmdirSync(path);
-            }
-        }
-        catch (err) {
-            console.error(err);
-            process.exit(1);
-        }
-    };
-
-    let dir;
-    dir = `${options.deploy}`;
-    createDir(dir);
-
-    dir = `${options.deploy}` + '/force-app';
-    deleteFolderRecursive(dir);
-    createDir(dir);
-
-    dir = `${options.deploy}` + '/force-app/main';
-    createDir(dir);
-
-    dir = `${options.deploy}` + '/force-app/main/default';
-    createDir(dir);
 }
 
 const packagexml2json = () => {
