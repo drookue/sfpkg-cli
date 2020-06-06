@@ -21,7 +21,7 @@ const userAccountNotification = {
 const Directories = [];
 
 
-function validateArguments() {
+const validateArguments = () => {
     try {
         if (!fs.existsSync(`${options.src}`)) {
             exitApp('The src directory does not exist.');
@@ -40,7 +40,7 @@ function validateArguments() {
     }
 }
 
-function checkNode(name, members) {
+const checkNode = (name, members) => {
 
     let testval = packageArray[name];
 
@@ -65,18 +65,18 @@ function checkNode(name, members) {
     }
 }
 
-function displayHeader(){
+const displayHeader = () => {
     let greeting = chalk.white.bold("Salesforce Package Deployment");
     let msgBox = boxen(greeting, boxenOptions);
     console.log(msgBox);
 }
 
 
-function resetDeployDir() {
-    let deleteFolderRecursive = function (path) {
+const resetDeployDir = () => {
+    let deleteFolderRecursive = (path) => {
         try {
             if (fs.existsSync(path)) {
-                fs.readdirSync(path).forEach(function (file, index) {
+                fs.readdirSync(path).forEach((file, index) => {
                     let curPath = path + "/" + file;
                     if (fs.lstatSync(curPath).isDirectory()) { // recurse
                         deleteFolderRecursive(curPath);
@@ -108,7 +108,7 @@ function resetDeployDir() {
     createDir(dir);
 }
 
-function packagexml2json(){
+const packagexml2json = () => {
     let pkgxml = `${options.pkgxml}`;
     let xml = fs.readFileSync(pkgxml, 'utf8');
     let parseString = require('xml2js').parseString;
@@ -116,16 +116,16 @@ function packagexml2json(){
     return new Promise((resolve, reject) => {
         // With parser
         var parser = new xml2js.Parser(/* options */);
-        parser.parseStringPromise(xml).then(function (result) {
+        parser.parseStringPromise(xml).then((result) => {
             resolve(JSON.stringify(result));
         })
-            .catch(function (err) {
+            .catch((err) => {
                 exitApp('XML cannot be converted to JSON.\nCheck the `${options.pkgxml}` file to ensure it is not malformed.');
             });
     })
 }
 
-function checkNodes(obj){
+const checkNodes = (obj) => {
     let types = obj.Package.types;
     for (let val of types) {
         checkNode(val.name[0], val.members);
@@ -136,13 +136,13 @@ function checkNodes(obj){
     }
 }
 
-function createDir(dir){
+const createDir = (dir) => {
     if (!fs.existsSync(dir)) {
         fs.mkdirSync(dir);
     }
 }
 
-function copyFile(srcpath, destpath){
+const copyFile = (srcpath, destpath) => {
     try {
         fs.copyFile(srcpath, destpath, (err) => {
             if (err) throw err;
@@ -152,7 +152,7 @@ function copyFile(srcpath, destpath){
     }
 }
 
-function processGeneric(path, members, pathLen=1){
+const processGeneric = (path, members, pathLen=1) => {
     const meta = '.' + path.substring(0, path.length - pathLen) + '-meta.xml';
     let dir;
     dir = `${options.deploy}` + '/force-app/main/default/' + path;
@@ -167,7 +167,7 @@ function processGeneric(path, members, pathLen=1){
     }
 }
 
-function processGenericByFolder(path, members, pathLen = 1) {
+const processGenericByFolder = (path, members, pathLen = 1) => {
     const meta = '.' + path.substring(0, path.length - pathLen) + '-meta.xml';
     let dir;
     dir = `${options.deploy}` + '/force-app/main/default/' + path;
@@ -184,7 +184,7 @@ function processGenericByFolder(path, members, pathLen = 1) {
     }
 }
 
-function processObjectItem(type, path, members, pathLen = 1){
+const processObjectItem = (type, path, members, pathLen = 1) => {
     const subdir = '/' + type;
     const meta = '.' + type.substring(0, type.length - pathLen) + '-meta.xml';
     let dir;
@@ -217,7 +217,7 @@ function processObjectItem(type, path, members, pathLen = 1){
     }
 }
 
-function processGenericWithFile(extension, path, members) {
+const processGenericWithFile = (extension, path, members) => {
     const meta = '-meta.xml';
     let dir;
     dir = `${options.deploy}` + '/force-app/main/default/' + path;
@@ -238,7 +238,7 @@ function processGenericWithFile(extension, path, members) {
     }
 }
 
-function copyDirectory(srcpath, destpath) {
+const copyDirectory = (srcpath, destpath) => {
     return new Promise((resolve, reject) => {
         const ncp = require('ncp').ncp;
 
@@ -246,7 +246,7 @@ function copyDirectory(srcpath, destpath) {
             Directories.push(srcpath);
             ncp.limit = 16;
 
-            ncp(srcpath, destpath, function (err) {
+            ncp(srcpath, destpath, (err) => {
                 if (err) {
                     throw new Error("Failed to copy " + srcpath, err);
                     //exitApp("Failed to copy " + srcpath);
@@ -261,7 +261,7 @@ function copyDirectory(srcpath, destpath) {
     });
 }
 
-function processFolder(path, members) {
+const processFolder = (path, members) => {
     let dir;
     dir = `${options.deploy}` + '/force-app/main/default/' + path;
     createDir(dir);
@@ -309,7 +309,7 @@ function processFolder(path, members) {
     }
 }
 
-function processCustomLabel(path, members) {
+const processCustomLabel = (path, members) => {
     let dir;
     dir = `${options.deploy}` + '/force-app/main/default/' + path;
     createDir(dir);
@@ -322,7 +322,7 @@ function processCustomLabel(path, members) {
     copyFile(srcpath, destpath);
 }
 
-function processWorkflow(path, members){
+const processWorkflow = (path, members) => {
     const meta = '.workflow-meta.xml';
     let dir;
     dir = `${options.deploy}` + '/force-app/main/default/' + path;
@@ -339,7 +339,7 @@ function processWorkflow(path, members){
     }
 }
 
-function processDifferentMeta(metaext, path, members, split = true) {
+const processDifferentMeta = (metaext, path, members, split = true) => {
     const meta = '.' + metaext + '-meta.xml';
     let dir;
     dir = `${options.deploy}` + '/force-app/main/default/' + path;
@@ -356,7 +356,7 @@ function processDifferentMeta(metaext, path, members, split = true) {
     }
 }
 
-function processDifferentMetaWithFile(metaext, path, members, split = true) {
+const processDifferentMetaWithFile = (metaext, path, members, split = true) => {
     const meta = '.' + metaext + '-meta.xml';
     const fileext = '.' + metaext;
     let dir;
@@ -382,9 +382,9 @@ function processDifferentMetaWithFile(metaext, path, members, split = true) {
     }
 }
 
-function processStaticResource(metaext, path, members) {
+const processStaticResource = (metaext, path, members) => {
     const meta = '.' + metaext + '-meta.xml';
-    const fileext = '.' + metaext;
+
     let dir;
     let srcpath;
     let destpath;
@@ -423,7 +423,7 @@ function processStaticResource(metaext, path, members) {
     }
 }
 
-function processNodes(obj) {
+const processNodes = (obj) => {
     let types = obj.Package.types;
     for (let val of types) {
         let name = val.name[0];
@@ -625,7 +625,7 @@ function processNodes(obj) {
     }
 }
 
-async function main(){
+const main = async () => {
     validateArguments();
     displayHeader();
     resetDeployDir();

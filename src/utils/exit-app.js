@@ -1,6 +1,6 @@
 const boxen = require('./box')
 
-function exitApp(message) {
+const exitApp = (message) => {
     const boxenOptions = {
         padding: 1,
         margin: 1,

@@ -7,7 +7,7 @@ const https = require('https');
 * @param messageBody
 * @return {Promise}
 */
-function sendSlackMessage(webhookURL, messageBody) {
+const sendSlackMessage = (webhookURL, messageBody) => {
     // make sure the incoming message body can be parsed into valid JSON
     try {
         messageBody = JSON.stringify(messageBody);
@@ -52,7 +52,7 @@ function sendSlackMessage(webhookURL, messageBody) {
     });
 }
 
-async function notifySlack(message, url) {
+const notifySlack = async (message, url) => {
     if (url !== 'undefined' && url !== null && url != '') {
         try {
             const slackResponse = await sendSlackMessage(url, message);
