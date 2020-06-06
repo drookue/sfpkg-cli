@@ -1,6 +1,30 @@
-const yargs = require("yargs");
+const fs = require('fs')
+
+const yargs = require("yargs")
+
+const exitApp = require('./exit-app')
 
 const demandOption = process.env.YARG_DEMAND === 'true' || process.env.YARG_DEMAND === undefined
+
+const validateArguments = () => {
+    try {
+        if (!fs.existsSync(`${options.src}`)) {
+            exitApp('The src directory does not exist.');
+        }
+    } catch (err) {
+        console.error(err);
+    }
+
+    try {
+        if (!fs.existsSync(`${options.pkgxml}`)) {
+            exitApp('The xml file does not exist.');
+        }
+    } catch (err) {
+        console.error(err);
+        process.exit(1);
+    }
+}
+
 
 const options = yargs
     .usage('Usage: tic-sfpkg -s <force-app-folder> -d <vscode-project> -f <package.xml> -u <slack-webhook-url>')
@@ -10,7 +34,6 @@ const options = yargs
     .option('u', { alias: 'slackurl', describe: 'Slack URL', type: 'string', demandOption: false })
     .argv;
 
-
 if (process.env.YARG_DEMAND) {
     options.slackurl = process.env.SLACK_WEBHOOK_URL
     options.src = process.env.SRC_PATH
@@ -18,4 +41,7 @@ if (process.env.YARG_DEMAND) {
     options.pkgxml = process.env.XML_PATH
 }
 
-module.exports = options
+module.exports = {
+    options,
+    validateArguments
+}

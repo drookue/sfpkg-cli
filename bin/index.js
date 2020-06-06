@@ -6,7 +6,7 @@ const fs = require('fs');
 const colors = require('colors');
 
 const packageArray = require('../src/definitions/package-array')
-const options = require('../src/utils/yargs')
+const {options, validateArguments} = require('../src/utils/yargs')
 const { boxen, boxenOptions } = require('../src/utils/box')
 const exitApp = require('../src/utils/exit-app')
 const { copyFile } = require('../src/utils/file')
@@ -15,33 +15,11 @@ const checkNodes = require('../src/utils/nodes')
 
 const stringProcessing = colors.green('     Processing metadata category:');
 
-const validateArguments = () => {
-    try {
-        if (!fs.existsSync(`${options.src}`)) {
-            exitApp('The src directory does not exist.');
-        }
-    } catch (err) {
-        console.error(err);
-    }
-
-    try {
-        if (!fs.existsSync(`${options.pkgxml}`)) {
-            exitApp('The xml file does not exist.');
-        }
-    } catch (err) {
-        console.error(err);
-        process.exit(1);
-    }
-}
-
-
-
 const displayHeader = () => {
     let greeting = chalk.white.bold("Salesforce Package Deployment");
     let msgBox = boxen(greeting, boxenOptions);
     console.log(msgBox);
 }
-
 
 const resetDeployDir = () => {
     let deleteFolderRecursive = (path) => {
