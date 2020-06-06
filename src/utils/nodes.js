@@ -2,7 +2,7 @@ const notifySlack = require('../notifications/slack')
 const packageArray = require('../definitions/package-array')
 
 const userAccountNotification = {
-    'text': 'Salesforce metadata types detected that are not found in the mapping array. These will be skipped until the tic-sfpkg-cli is updated.', // text
+    'text': 'Salesforce metadata types detected that are not found in the mapping array. These will be skipped until the sfpkg-cli is updated.', // text
     'attachments': []
 };
 

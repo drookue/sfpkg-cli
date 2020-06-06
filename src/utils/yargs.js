@@ -27,7 +27,7 @@ const validateArguments = () => {
 
 
 const options = yargs
-    .usage('Usage: tic-sfpkg -s <force-app-folder> -d <vscode-project> -f <package.xml> -u <slack-webhook-url>')
+    .usage('Usage: sfpkg -s <force-app-folder> -d <vscode-project> -f <package.xml> -u <slack-webhook-url>')
     .option('s', { alias: 'src', describe: 'Source directory', type: 'string', demandOption })
     .option('d', { alias: 'deploy', describe: 'Deploy directory', type: 'string', demandOption: false })
     .option('f', { alias: 'pkgxml', describe: 'package.xml', type: 'string', demandOption: false })
