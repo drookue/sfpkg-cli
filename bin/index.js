@@ -5,21 +5,15 @@ const xml2js = require('xml2js');
 const fs = require('fs');
 const colors = require('colors');
 
-const notifySlack = require('../src/notifications/slack')
 const packageArray = require('../src/definitions/package-array')
 const options = require('../src/utils/yargs')
 const { boxen, boxenOptions } = require('../src/utils/box')
 const exitApp = require('../src/utils/exit-app')
+const { copyFile } = require('../src/utils/file')
+const { createDir, copyDirectory } = require('../src/utils/directory')
+const checkNodes = require('../src/utils/nodes')
 
 const stringProcessing = colors.green('     Processing metadata category:');
-
-const userAccountNotification = {
-    'text': 'Salesforce metadata types detected that are not found in the mapping array. These will be skipped until the tic-sfpkg-cli is updated.', // text
-    'attachments': []
-};
-
-const Directories = [];
-
 
 const validateArguments = () => {
     try {
@@ -40,30 +34,7 @@ const validateArguments = () => {
     }
 }
 
-const checkNode = (name, members) => {
 
-    let testval = packageArray[name];
-
-    if (typeof (testval) === 'undefined') {
-        let msgBox = '     Skipping unknown metadata category: ' + name;
-        console.log(colors.red(msgBox));
-        userAccountNotification.attachments.push({ // this defines the attachment block, allows for better layout usage
-            'color': '#ff0000', // color of the attachments sidebar.
-            'fields': [ // actual fields
-                {
-                    'title': 'Category', // Custom field
-                    'value': name, // Custom value
-                    'short': true // long fields will be full width
-                },
-                {
-                    'title': 'Value',
-                    'value': 'undefined',
-                    'short': true
-                }
-            ]
-        });
-    }
-}
 
 const displayHeader = () => {
     let greeting = chalk.white.bold("Salesforce Package Deployment");
@@ -123,33 +94,6 @@ const packagexml2json = () => {
                 exitApp('XML cannot be converted to JSON.\nCheck the `${options.pkgxml}` file to ensure it is not malformed.');
             });
     })
-}
-
-const checkNodes = (obj) => {
-    let types = obj.Package.types;
-    for (let val of types) {
-        checkNode(val.name[0], val.members);
-    }
-
-    if (userAccountNotification.attachments.length > 0) {
-        notifySlack(userAccountNotification, options.slackurl);
-    }
-}
-
-const createDir = (dir) => {
-    if (!fs.existsSync(dir)) {
-        fs.mkdirSync(dir);
-    }
-}
-
-const copyFile = (srcpath, destpath) => {
-    try {
-        fs.copyFile(srcpath, destpath, (err) => {
-            if (err) throw err;
-        });
-    } catch (err) {
-        exitApp("Failed to copy " + srcpath);
-    }
 }
 
 const processGeneric = (path, members, pathLen=1) => {
@@ -238,28 +182,6 @@ const processGenericWithFile = (extension, path, members) => {
     }
 }
 
-const copyDirectory = (srcpath, destpath) => {
-    return new Promise((resolve, reject) => {
-        const ncp = require('ncp').ncp;
-
-        if (!Directories.includes(srcpath)) {
-            Directories.push(srcpath);
-            ncp.limit = 16;
-
-            ncp(srcpath, destpath, (err) => {
-                if (err) {
-                    throw new Error("Failed to copy " + srcpath, err);
-                    //exitApp("Failed to copy " + srcpath);
-                }
-            });
-        }
-  }).then((state) => {
-        //console.log('done', state)
-    })
-    .catch((error) => {
-        throw new Error("Failed to copy " + srcpath, err);
-    });
-}
 
 const processFolder = (path, members) => {
     let dir;
