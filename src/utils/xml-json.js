@@ -3,7 +3,7 @@ const fs = require('fs')
 const xml2js = require('xml2js')
 const { options } = require('../utils/yargs')
 
-const packagexml2json = () => {
+const packagexml2json = async () => {
     let pkgxml = `${options.pkgxml}`;
     let xml = fs.readFileSync(pkgxml, 'utf8');
     let parseString = require('xml2js').parseString;

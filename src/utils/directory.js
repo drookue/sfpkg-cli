@@ -10,8 +10,8 @@ const createDir = (dir) => {
     }
 }
 
-const copyDirectory = (srcpath, destpath) => {
-    return new Promise((resolve, reject) => {
+const copyDirectory = async (srcpath, destpath) => {
+    try {
         const ncp = require('ncp').ncp;
 
         if (!Directories.includes(srcpath)) {
@@ -25,12 +25,9 @@ const copyDirectory = (srcpath, destpath) => {
                 }
             });
         }
-    }).then((state) => {
-        //console.log('done', state)
-    })
-        .catch((error) => {
-            throw new Error("Failed to copy " + srcpath, err);
-        });
+    } catch (error) {
+        throw new Error("Failed to copy " + srcpath, err);
+    }
 }
 
 const resetDeployDir = () => {
