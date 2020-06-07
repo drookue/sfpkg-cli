@@ -1,4 +1,5 @@
 const fs = require('fs');
+const exitApp = require('./exit-app')
 
 const copyFile = (srcpath, destpath) => {
     try {

@@ -21,7 +21,6 @@ const copyDirectory = async (srcpath, destpath) => {
             ncp(srcpath, destpath, (err) => {
                 if (err) {
                     throw new Error("Failed to copy " + srcpath, err);
-                    //exitApp("Failed to copy " + srcpath);
                 }
             });
         }
