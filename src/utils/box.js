@@ -1,6 +1,6 @@
 
-const boxen = require("boxen");
-const chalk = require("chalk");
+const boxen = require("boxen")
+const chalk = require("chalk")
 
 const boxenOptions = {
     padding: 1,
@@ -11,9 +11,9 @@ const boxenOptions = {
 }
 
 const displayHeader = () => {
-    let greeting = chalk.white.bold("Salesforce Package Deployment");
-    let msgBox = boxen(greeting, boxenOptions);
-    console.log(msgBox);
+    let greeting = chalk.white.bold("Salesforce Package Deployment")
+    let msgBox = boxen(greeting, boxenOptions)
+    console.log(msgBox)
 }
 
 module.exports = {

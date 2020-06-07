@@ -6,12 +6,12 @@ const exitApp = (message) => {
         margin: 1,
         borderStyle: "round",
         borderColor: "red",
-    };
+    }
 
-    let msgBox = boxen(message, boxenOptions);
+    let msgBox = boxen(message, boxenOptions)
 
-    console.log(msgBox);
-    process.exit(1);
+    console.log(msgBox)
+    process.exit(1)
 }
 
 module.exports = exitApp
